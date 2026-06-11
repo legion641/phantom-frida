@@ -67,16 +67,16 @@ jobs:
         uses: actions/cache@v4
         id: ndk-cache
         with:
-          path: build/android-ndk-r29
-          key: ndk-r29-linux
+          path: build/android-ndk-r25
+          key: ndk-r25-linux
 
       - name: Download NDK
         if: steps.ndk-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p build
-          curl -L -o build/android-ndk-r29-linux.zip \
-            https://dl.google.com/android/repository/android-ndk-r29-linux.zip
-          cd build && unzip -q android-ndk-r29-linux.zip && rm android-ndk-r29-linux.zip
+          curl -L -o build/android-ndk-r25-linux.zip \
+            https://dl.google.com/android/repository/android-ndk-r25-linux.zip
+          cd build && unzip -q android-ndk-r25-linux.zip && rm android-ndk-r25-linux.zip
 
       - name: Cache Frida source
         uses: actions/cache@v4
@@ -109,7 +109,7 @@ jobs:
             --port ${{ steps.random.outputs.port }} \
             --extended \
             --skip-clone \
-            --ndk-path build/android-ndk-r29 \
+            --ndk-path build/android-ndk-r25 \
             --verify
 
       - name: Generate build info
