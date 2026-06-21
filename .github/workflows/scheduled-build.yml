@@ -43,6 +43,21 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Frida version: $VERSION"
 
+      - name: Determine NDK version
+        id: ndk
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION=${VERSION#v} 
+
+          if [ "$(printf '%s\n' "17.8.1" "$VERSION" | sort -V | head -n1)" = "17.8.1" ]; then
+
+            NDK_VER="r29"
+          else
+            NDK_VER="r25"
+          fi
+          echo "version=$NDK_VER" >> $GITHUB_OUTPUT
+          echo "Selected NDK version: $NDK_VER"
+
       - name: Generate random name and port
         id: random
         run: |
@@ -67,16 +82,17 @@ jobs:
         uses: actions/cache@v4
         id: ndk-cache
         with:
-          path: build/android-ndk-r25
-          key: ndk-r25-linux
+          path: build/android-ndk-${{ steps.ndk.outputs.version }}
+          key: ndk-${{ steps.ndk.outputs.version }}-linux
 
       - name: Download NDK
         if: steps.ndk-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p build
-          curl -L -o build/android-ndk-r25-linux.zip \
-            https://dl.google.com/android/repository/android-ndk-r25-linux.zip
-          cd build && unzip -q android-ndk-r25-linux.zip && rm android-ndk-r25-linux.zip
+          NDK_VER="${{ steps.ndk.outputs.version }}"
+          curl -L -o build/android-ndk-${NDK_VER}-linux.zip \
+            https://dl.google.com/android/repository/android-ndk-${NDK_VER}-linux.zip
+          cd build && unzip -q android-ndk-${NDK_VER}-linux.zip && rm android-ndk-${NDK_VER}-linux.zip
 
       - name: Cache Frida source
         uses: actions/cache@v4
@@ -109,7 +125,7 @@ jobs:
             --port ${{ steps.random.outputs.port }} \
             --extended \
             --skip-clone \
-            --ndk-path build/android-ndk-r25 \
+            --ndk-path build/android-ndk-${{ steps.ndk.outputs.version }} \
             --verify
 
       - name: Generate build info
